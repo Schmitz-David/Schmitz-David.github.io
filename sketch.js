@@ -1,11 +1,16 @@
+let a;
 
 function setup() {
-  createCanvas(displayWidth, displayHeight);
-  strokeWeight(10);
-  stroke(0);
+  createCanvas(720, 400);
+  stroke(255);
+  a = height / 2;
 }
 
-function touchMoved() {
-  line(mouseX, mouseY, pmouseX, pmouseY);
-  return false;
+function draw() {
+  background(51);
+  line(0, a, width, a);
+  a = a - 0.5;
+  if (a < 0) {
+    a = height;
+  }
 }
