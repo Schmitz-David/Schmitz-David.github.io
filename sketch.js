@@ -7,7 +7,8 @@ function setup() {
 }
 
 function draw() {
-  background(51);
+  if(mouseIsPressed) background(51);
+	else background(101);
   line(0, a, width, a);
   a = a - 0.5;
   if (a < 0) {
