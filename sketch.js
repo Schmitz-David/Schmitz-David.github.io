@@ -21,3 +21,6 @@ function windowResized(){
 	resizeCanvas(windowWidth, windowHeight);
 	a=height;
 }
+function deviceTurned(){
+	windowResized();
+}
