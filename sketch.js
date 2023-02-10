@@ -2,6 +2,7 @@ let a;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
   stroke(255);
   a = height / 2;
 }
