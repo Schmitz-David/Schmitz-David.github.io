@@ -1,7 +1,7 @@
 let a;
 
 function setup() {
-  createCanvas(720, 400);
+  createCanvas(windowWidth, windowHeight);
   stroke(255);
   a = height / 2;
 }
@@ -13,4 +13,8 @@ function draw() {
   if (a < 0) {
     a = height;
   }
+}
+
+function windowResized(){
+	resizeCanvas(windowWidth, windowHeight);
 }
