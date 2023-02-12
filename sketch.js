@@ -2,8 +2,7 @@ let positions, tmp, layerThickness, widthIncrement;
 function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(2);
-  positions=[0];
-  for(let i=0;i<300;i++) positions.push(0);
+  positions=[0,0];
   initialize();
 }
 function initialize(){
