@@ -1,0 +1,47 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+body{
+    padding: 0;
+    background: linear-gradient(135deg,#ffffff, #158cdb);
+    background-attachment: fixed;
+    height: 100vh;
+}
+.center{
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    margin: 25px;
+    background: white;
+    width: max(80vw, 400px);
+    height: 80vh;
+    border-radius: 10px;
+    box-shadow: 10px 10px 15px rgba(0,0,0,0.05);
+    min-width: fit-content;
+}
+.center h1{
+    text-align: center;
+    padding: 20px 0;
+}
+table{
+    empty-cells: show;
+    text-align: center;
+}
+th, td{
+    border: 1px solid black;
+    border-style: r;
+    border-radius: 5px;
+    min-height: 10cm;
+}
+#button-div{
+    text-align: center;
+}
+#add-row-button{
+    min-width: 3cm;
+}
+#airport-list{
+    display: none;
+}
