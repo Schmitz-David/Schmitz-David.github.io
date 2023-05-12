@@ -1,0 +1,8 @@
+body{
+    background: linear-gradient(135deg,#ffffff, #158cdb);
+    background-attachment: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.cancel-button-vars .cancel-button-consts{
+    margin: 0
+}
