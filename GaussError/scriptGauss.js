@@ -1,11 +1,20 @@
 var formula;
-var naturalConstants=["c","G","e_0"];
-var constantValues=[299792458,1,1];
-var constantUnits=["m/s","N","N"];
+var constantNames=
+["speed of light in vacuum","Planck constant",
+"vacuum magnetic permeability","vacuum electric permittivity",
+"Boltzmann constant","gravitational constant","elementary charge","Avogadro constant"];
+var constantSymbols=
+["c","h","mu","eps","k","G","e","N"];
+var constantValues=
+[299792458,6.62607015e-34,1.2566370621219e-6,8.854187812813e-12,
+1.380649e-23,6.6743015e-11,1.602176634e-19,6.02214076e23];
+var constantUnits=
+["m/s","J s","N/A^2","F/m","J/K","m^3/(kg s^2)","C","1/mol"];
 var isConstantSelected=[];
 const varsTable = document.getElementById("vars-table");
 const constsTable = document.getElementById("consts-table");
-for(let i=0; i<naturalConstants.length; i++) isConstantSelected.push(false);
+var warningMsg = "";
+for(let i=0; i<constantSymbols.length; i++) isConstantSelected.push(false);
 
 document.getElementById("add-row-vars-btn").addEventListener("click",function(){
 	document.getElementById("vars-table").insertAdjacentHTML('beforeend',
@@ -45,6 +54,7 @@ document.getElementById("add-row-consts-btn-custom").addEventListener("click",fu
 	document.getElementById("consts-table").insertAdjacentHTML('beforeend',
 		'\
 			<tr class="const-row">\
+				<th></th>\
 				<th>\
 					<input type="text" class="const-name">\
 				</th>\
@@ -74,14 +84,21 @@ document.getElementById("add-row-consts-btn-custom").addEventListener("click",fu
 document.getElementById("consts-head").insertAdjacentHTML('afterend',
 getConstantsString());
 
+function getScientificString(inputNumber, tex=false){
+	[prefix, suffix] = inputNumber.toExponential().split('e').map(str => Number(str));
+	if(!tex) return prefix.toPrecision(6)+" x 10^"+suffix.toString();
+	return prefix.toPrecision(6)+"\\cdot 10^{"+suffix.toString()+"}";
+}
+
 function getConstantsString(){
 	result="";
-	for(let i=0; i<naturalConstants.length; i++){
+	for(let i=0; i<constantSymbols.length; i++){
 		result+="<tr>";
-		result+="<th>"+naturalConstants[i]+"</th>";
-		result+="<th>"+constantValues[i].toString()+"</th>";
+		result+="<th>"+constantNames[i]+"</th>";
+		result+="<th>"+constantSymbols[i]+"</th>";
+		result+="<th>"+getScientificString(constantValues[i])+"</th>";
 		result+="<th>"+constantUnits[i]+"</th>";
-		result+="<th><input type=\"checkbox\"></th>";
+		result+="<th><input type=\"checkbox\" onchange=\"isConstantSelected["+i+"]=!isConstantSelected["+i+"];\"></th>";
 		result+="</tr>";
 	}
 	return result;
@@ -130,9 +147,11 @@ function evaluate(){
 	actualGoalName = document.getElementById("goal").value;
 
 	formula = math.parse(document.getElementById("formula").value);
+
+	
 	/*
-	if(actualGoalName == "") return false;
-	for(let i=0; i<actualVarNames.length; i++){
+	if(actualGoalName == "") return false;*/
+	/*for(let i=0; i<actualVarNames.length; i++){
 		if(actualVarNames[i]==""||actualVarValues[i]==""||actualVarUncertainties[i]==""||actualVarUnits=="") return false;
 	}
 	for(let i=0; i<actualConstNames.length; i++){
@@ -150,8 +169,13 @@ function evaluate(){
 
 	document.getElementById("main").insertAdjacentHTML('beforeend','\
 	<div id="uncertainty-text"><h2>Final uncertainty</h2>\
-	$$\\Delta '+actualGoalName+'='+getFinalUncertainty(partialDerivatives).toString()+'$$\
+	$$\\Delta '+actualGoalName+'='+getScientificString(getFinalUncertainty(partialDerivatives),true)+'$$\
 	</div>');
+
+	if(document.getElementById("warningMsg")!=null) document.getElementById("main").removeChild(document.getElementById("warningMsg"));
+	if(warningMsg!="") document.getElementById("partials-text").insertAdjacentHTML('beforeBegin','\
+	<div id="warningMsg"><p style="color:red">'+warningMsg+'</p></div>');
+	warningMsg="";
 
 	MathJax.typeset();
 
@@ -177,15 +201,24 @@ function getFinalUncertainty(partials){
 	for(let i=0; i<partials.length; i++){
 		result += math.pow(actualVarUncertainties[i].value*math.evaluate(partials[i].toString(),dictionary),2);
 	}
+	uncertaintyText=1;
 	return math.sqrt(result);
 }
 function getDictionary(){
 	var dict = {};
+	warningMsg="";
+	for(let i=0; i<constantNames.length; i++){
+		if(isConstantSelected[i]){
+			dict[constantSymbols[i]]=constantValues[i];
+		}
+	}
 	for(let i=0; i<actualVarNames.length;i++){
+		if(warningMsg=="" && dict[actualVarNames[i].value]!=null) warningMsg="Duplicate symbol: "+actualVarNames[i].value;
 		dict[actualVarNames[i].value] = actualVarValues[i].value;
 	}
 	for( let i=0; i<actualConstNames.length;i++){
-		dict[actualConstNames[i].value] = actualConstValues[i].value;
+		if(warningMsg=="" && dict[actualConstNames[i].value]!=null) warningMsg="Duplicate symbol: "+actualConstNames[i].value;
+		dict[actualConstNames[i].value] = actualConstValues[i].value;9
 	}
 	return dict;
 }
