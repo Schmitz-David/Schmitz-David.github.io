@@ -24,10 +24,10 @@ document.getElementById("add-row-vars-btn").addEventListener("click",function(){
 					<input type="text" class="var-name">\
 				</th>\
 				<th>\
-					<input type="number" class="var-value">\
+					<input type="text" class="var-value">\
 				</th>\
 				<th>\
-					<input type="number" class="var-uncertainty">\
+					<input type="text" class="var-uncertainty">\
 				</th>\
 				<th>\
 					<input type="text" pattern="[A-Za-z]+" class="var-unit">\
