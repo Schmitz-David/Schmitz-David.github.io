@@ -38,10 +38,10 @@ document.getElementById("add-row-vars-btn").addEventListener("click",function(){
 					<input type="text" class="var-name">\
 				</th>\
 				<th>\
-					<input type="number" class="var-value">\
+					<input type="text" class="var-value">\
 				</th>\
 				<th>\
-					<input type="number" class="var-uncertainty">\
+					<input type="text" class="var-uncertainty">\
 				</th>\
 				<th>\
 					<input type="text" pattern="[A-Za-z]+" class="var-unit">\
@@ -73,7 +73,7 @@ document.getElementById("add-row-consts-btn-custom").addEventListener("click",fu
 					<input type="text" class="const-name">\
 				</th>\
 				<th>\
-					<input type="number" class="const-value">\
+					<input type="text" class="const-value">\
 				</th>\
 				<th>\
 					<input type="text" pattern="[A-Za-z]+" class="const-unit">\
