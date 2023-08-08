@@ -8,10 +8,13 @@ var constantNames=
 "Planck length","Planck mass","Planck time","Planck temperature",
 "nuclear magneton","Bohr magneton","magnetic flux quantum","conductance quantum",
 "electron mass","proton mass","neutron mass","atomic mass constant","molar gas constant",
-"earth mass","solar mass","standard acceleration of free fall"];
+"Earth mass","solar mass","standard acceleration of free fall","mass of the moon",
+"Earth radius"];
 var constantSymbols=
 ["c","h","mu","eps","k","G","e","N","hb","Z","ke","L","s","lp","mp","tp",
-"Tp","numag","muB","magflux","GG","mE","mP","mN","mU","R","ME","MS","g"];
+"Tp","numag","muB","magflux","GG","mE","mP","mN","mU","R","mE","mS","g","m","r"];
+var constantSymbolsUserSpecified=[];
+for(i = 0; i<constantSymbols.length; i++) constantSymbolsUserSpecified.push(constantSymbols[i]);
 var constantValues=
 [299792458,6.62607015e-34,1.2566370621219e-6,8.854187812813e-12,
 1.380649e-23,6.6743015e-11,1.602176634e-19,6.02214076e23,1.054571817e-34,
@@ -19,11 +22,11 @@ var constantValues=
 2.176434e-8,5.391247e-44,1.416784e32,5.0507837461e-27,9.2740100783e-24,
 2.067833848e-15,7.748091729e-5,9.1093837015e-31,1.67262192369e-27,
 1.67492749804e-27,1.66053906660e-27,8.31446261815324,5.9722e24,1.98847e30,
-9.80665];
+9.80665, 7.342e22, 6.3781e6];
 var constantUnits=
 ["m/s","J s","N/A^2","F/m","J/K","m^3/(kg s^2)","C","1/mol","J s","&#x3A9;",
 "N m^2 / C^2","1/m^2","W/(m^2 K^4)","m","kg","s","K","J/T","J/T","Wb","S",
-"kg","kg","kg","kg","J/(mol K)","kg","kg","m/s^2"];
+"kg","kg","kg","kg","J/(mol K)","kg","kg","m/s^2","kg","m"];
 var isConstantSelected=[];
 const varsTable = document.getElementById("vars-table");
 const constsTable = document.getElementById("consts-table");
@@ -228,7 +231,9 @@ function getDictionary(){
 	warningMsg="";
 	for(let i=0; i<constantNames.length; i++){
 		if(isConstantSelected[i]){
-			dict[constantSymbols[i]]=constantValues[i];
+			dict[constantSymbolsUserSpecified[i]]=constantValues[i];
+			if(warningMsg=="" && dict[constantSymbolsUserSpecified[i]]!=null) 
+				warningMsg="Duplicate symbol: "+constantSymbolsUserSpecified[i];
 		}
 	}
 	for(let i=0; i<actualVarNames.length;i++){
@@ -266,22 +271,24 @@ function autocomplete(input, arr) {
 		/*append the DIV element as a child of the autocomplete container:*/
 		this.parentNode.appendChild(a);
 		/*for each item in the array...*/
-		var alreadyAdded = 0;
-		for (i = 0; i < arr.length && alreadyAdded<3; i++) {
-		  /*check if the item starts with the same letters as the text field value:*/
-		  if(arr[i].toLowerCase().search(val.toLowerCase())>-1){
-		  /*if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {*/
-			/*create a DIV element for each matching element:*/
-			alreadyAdded++;
+		
+		// get three elements with the best similarity
+		let maxIndices = [null,null,null];
+		let arrayOfSimilarity = arr.map((str) => str.toLowerCase()).map((str) => gestaltSimilarity(val,str));
+		for(i = 0; i < arr.length; i++){
+			j = 0;
+			while(j < 3 && maxIndices[j]!=null && arrayOfSimilarity[maxIndices[j]]>arrayOfSimilarity[i]) j++;
+			if(j<3) {
+				for(k = 2; k>j; k--) maxIndices[k]=maxIndices[k-1];
+				maxIndices[j]=i;
+			}
+		}
+		for(j = 0; j<maxIndices.length && maxIndices[j]!=null; j++){
+			i = maxIndices[j];
 			b = document.createElement("DIV");
-			/*make the matching letters bold:*/
-			tmpIndex = arr[i].toLowerCase().search(val.toLowerCase());
-			b.innerHTML = arr[i].substr(0,tmpIndex)+"<strong>"+arr[i].substr(tmpIndex,val.length)+"</strong>"+arr[i].substr(tmpIndex+val.length);
-			/*insert a input field that will hold the current array item's value:*/
-			b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+			b.innerHTML = arr[i]+"<input type='hidden' value='" + arr[i] + "'>";
 			let iClosure=i;
-			/*execute a function when someone clicks on the item value (DIV element):*/
-				b.addEventListener("click", function(e) {
+			b.addEventListener("click", function(e) {
 				/*insert the value for the autocomplete text field:*/
 				input.value = this.getElementsByTagName("input")[0].value;
 				/*close the list of autocompleted values,
@@ -292,7 +299,8 @@ function autocomplete(input, arr) {
 				if(!isConstantSelected[iClosure]){
 					document.getElementById("consts-head").insertAdjacentHTML('afterEnd','\
 					<tr id="const-index-'+iClosure.toString()
-					+'"><th>'+constantNames[iClosure]+'</th><th>'+constantSymbols[iClosure]+'</th><th>'+getScientificStringMathJax(constantValues[iClosure])+
+					+'"><th>'+constantNames[iClosure]+'</th><th><input type=text style=\"width:2em\" id=\"nat-const-symbol-'+iClosure+'\" onchange=\"adjustConstName('+iClosure+
+					')\" placeholder=\"'+constantSymbols[iClosure]+'\"></th><th>'+getScientificStringMathJax(constantValues[iClosure])+
 					'</th><th>'+constantUnits[iClosure]+'</th>'+
 					'<th>\
 								<button class="cancel-button-consts" onClick="removeConstant('+iClosure+')">\
@@ -305,12 +313,58 @@ function autocomplete(input, arr) {
 					</th>'
 					+'</tr>');
 					MathJax.typeset();
+					input.value='';
 				}
 				isConstantSelected[iClosure]=true;
 			});
 			a.appendChild(b);
-		  }
 		}
+		
+		//for (i = 0; i < arr.length && alreadyAdded<3; i++) {
+		/*check if the item starts with the same letters as the text field value:*/
+		//if(arr[i].toLowerCase().search(val.toLowerCase())>-1){
+			/*if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {*/
+				/*create a DIV element for each matching element:*/
+		//	alreadyAdded++;
+		//	b = document.createElement("DIV");
+			/*make the matching letters bold:*/
+		//	tmpIndex = arr[i].toLowerCase().search(val.toLowerCase());
+		//	b.innerHTML = arr[i].substr(0,tmpIndex)+"<strong>"+arr[i].substr(tmpIndex,val.length)+"</strong>"+arr[i].substr(tmpIndex+val.length);
+			/*insert a input field that will hold the current array item's value:*/
+		//	b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+		//	let iClosure=i;
+			/*execute a function when someone clicks on the item value (DIV element):*/
+		//		b.addEventListener("click", function(e) {
+				/*insert the value for the autocomplete text field:*/
+		//		input.value = this.getElementsByTagName("input")[0].value;
+				/*close the list of autocompleted values,
+				(or any other open lists of autocompleted values:*/
+		//		closeAllLists();
+
+				/*add the constant to the list*/
+		//		if(!isConstantSelected[iClosure]){
+		//			document.getElementById("consts-head").insertAdjacentHTML('afterEnd','\
+		//			<tr id="const-index-'+iClosure.toString()
+		//			+'"><th>'+constantNames[iClosure]+'</th><th>'+constantSymbols[iClosure]+'</th><th>'+getScientificStringMathJax(constantValues[iClosure])+
+		//			'</th><th>'+constantUnits[iClosure]+'</th>'+
+		//			'<th>\
+		//						<button class="cancel-button-consts" onClick="removeConstant('+iClosure+')">\
+		//							<svg width="10" height="10">\
+		//								<line x1="0" y1="0" x2="10" y2="10" stroke="black"/>\
+		//								<line x1="0" y1="10" x2="10" y2="0" stroke="black"/>\
+		//								X\
+		//							  </svg>\
+		//						</button>\
+		//			</th>'
+		//			+'</tr>');
+		//			MathJax.typeset();
+		//			input.value='';
+		//		}
+		//		isConstantSelected[iClosure]=true;
+		//	});
+		//	a.appendChild(b);
+		  //}
+		//}
 	});
 
 	input.addEventListener("keydown", function(e) {
@@ -368,4 +422,58 @@ function removeConstant(arrayIndex){
 	isConstantSelected[arrayIndex]=false;
 	toRemove = document.getElementById("const-index-"+arrayIndex.toString());
 	toRemove.parentNode.removeChild(toRemove);
+}
+
+/*
+fuzzy string pattern matching, see https://de.wikipedia.org/wiki/Gestalt_Pattern_Matching
+*/
+function gestaltSimilarity(string1, string2) {
+    let stack = [string1, string2];
+	let score = 0;
+	let primarySubsequence = -1;
+    
+    while(stack.length != 0) {
+        const substr1 = stack.pop();
+        const substr2 = stack.pop();
+        
+        let longest_sequence_length = 0;
+        let longest_sequence_index_1 = -1;
+        let longest_sequence_index_2 = -1;
+
+        for(let i = 0; i < substr1.length; i++) {
+            for(let j = 0; j < substr2.length; j++) {
+                let k = 0;
+                while(i+k < substr1.length && j+k < substr2.length && substr1.charAt(i+k) === substr2.charAt(j+k)) {
+                    k++;
+                }
+                if(k > longest_sequence_length) {
+                    longest_sequence_length = k;
+                    longest_sequence_index_1 = i;
+                    longest_sequence_index_2 = j;
+                }
+            }
+        }
+    
+        if(longest_sequence_length > 0) {
+			if(primarySubsequence == -1) primarySubsequence = longest_sequence_length;
+            score += longest_sequence_length * 2;
+            if(longest_sequence_index_1 !== 0 && longest_sequence_index_2 !== 0) {
+                stack.push(substr1.substring(0, longest_sequence_index_1));
+                stack.push(substr2.substring(0, longest_sequence_index_2));
+            }
+            if(longest_sequence_index_1 + longest_sequence_length !== substr1.length && 
+                longest_sequence_index_2 + longest_sequence_length !== substr2.length) {
+                stack.push(substr1.substring(longest_sequence_index_1 + longest_sequence_length, substr1.length));
+                stack.push(substr2.substring(longest_sequence_index_2 + longest_sequence_length, substr2.length));
+            }
+        }
+    }
+    score += 2*primarySubsequence;
+    return score / (string1.length + string2.length);
+}
+
+function adjustConstName(theConstant){
+	let inputField = document.getElementById("nat-const-symbol-"+theConstant);
+	if(inputField.value=='') constantSymbolsUserSpecified[theConstant]=constantSymbols[theConstant];
+	else constantSymbolsUserSpecified[theConstant] = inputField.value;
 }

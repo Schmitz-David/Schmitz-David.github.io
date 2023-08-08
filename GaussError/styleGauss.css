@@ -38,3 +38,6 @@ body{
     display: none;
     size: 0;
 }
+::-webkit-input-placeholder{
+    color: black;
+}
