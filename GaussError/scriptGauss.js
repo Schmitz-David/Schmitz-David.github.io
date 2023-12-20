@@ -221,7 +221,7 @@ function getFinalUncertainty(partials){
 	var result = 0;
 	const dictionary = getDictionary();
 	for(let i=0; i<partials.length; i++){
-		result += math.pow(actualVarUncertainties[i].value*math.evaluate(partials[i].toString(),dictionary),2);
+		result += math.pow(actualVarUncertainties[i].value.replace(",",".")*math.evaluate(partials[i].toString(),dictionary),2);
 	}
 	uncertaintyText=1;
 	return math.sqrt(result);
@@ -238,11 +238,11 @@ function getDictionary(){
 	}
 	for(let i=0; i<actualVarNames.length;i++){
 		if(warningMsg=="" && dict[actualVarNames[i].value]!=null) warningMsg="Duplicate symbol: "+actualVarNames[i].value;
-		dict[actualVarNames[i].value] = actualVarValues[i].value;
+		dict[actualVarNames[i].value] = actualVarValues[i].value.replace(",",".");
 	}
 	for( let i=0; i<actualConstNames.length;i++){
 		if(warningMsg=="" && dict[actualConstNames[i].value]!=null) warningMsg="Duplicate symbol: "+actualConstNames[i].value;
-		dict[actualConstNames[i].value] = actualConstValues[i].value;9
+		dict[actualConstNames[i].value] = actualConstValues[i].value.replace(",",".");
 	}
 	return dict;
 }
